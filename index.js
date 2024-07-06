@@ -36,7 +36,7 @@ console.log("Inició");
 
     await a_from_civil.click();
     console.log("CLICKED");
-
+   
     // PASO 2: Esperar a que el nuevo elemento aparezca
     const containerDisplaySent = await page.waitForSelector(
       "#containerDisplaySent",
@@ -45,6 +45,8 @@ console.log("Inició");
     if (!containerDisplaySent)
       throw new Error("No existe el div con el id: containerDisplaySent");
 
+
+  ;
     // PASO 3: Acceder a los divs anidados
     const bsection = await containerDisplaySent.$(":nth-child(1)");
     if (!bsection)
@@ -67,133 +69,65 @@ console.log("Inició");
       ":nth-child(1) > .alto.decisiones"
     );
 
-    //recorrer todas las tablas
-
-
-
-    /*
-   console.log(await altosDecisiones.$(":nth-child(1)"))
-   console.log(await altosDecisiones.$(":nth-child(2)"))
-   console.log(await altosDecisiones.$(":nth-child(3)"))
-   */
+   
+   //recorre todo el mes
+   const childElements = await page.evaluate(async(container) => {
+    const children = container.children;
+    const listOfDaysPerMonth = children[1].children[0].children[0].children[1]
   
-     /*
-   const childrenHandles = await altosDecisiones.$$(':scope > table');
-  // console.log("HIJOS DE altosDecisiones",childrenHandles)
+    var sentences = []
 
+    for(let i = 0; i < listOfDaysPerMonth.children.length; i++){
+      console.log(listOfDaysPerMonth.children[i])
 
-   var dataASD = []
-   for(let dateSelectors of  childrenHandles){
+      var sentencesSeparator = []
+     
+    
+      let a = listOfDaysPerMonth.children[i]
 
-    const data = await page.evaluate((child) => {
-      const monthElement = child.querySelector('.nombre-mes a');
-      const firstDayElement = child.querySelector('.numero-dia');
+      let day = a.textContent
 
-      const month = monthElement ? monthElement.textContent.trim() : null;
-      const firstDay = firstDayElement ? firstDayElement.textContent.trim() : null;
-      
-      return { month, firstDay };
-    }, dateSelectors);
-    dataASD.push(data)
+      a.click()
 
-    console.log("Mes:", data.month);
-    console.log("Primer día:", data.firstDay);
+      await new Promise((resolve) => setTimeout(resolve, 3000)); // Espera para permitir que el contenido se cargue
 
-    const data2 = await page.evaluate((child) => {
-      return child
-    }, dateSelectors);
-    console.log("HIJOS",data2)
+      const content = document.querySelector("#blog_area");
+      const sentences_cont = blog_area.children[1];
 
-   }
-   console.log("data multiplee",dataASD)
-   */
+      console.log("SENTNECE CONT",sentences_cont)
 
+      for (let sentence of sentences_cont.children) {
+        const table_of_sentence = sentence.children[0].children[0];
+        sentencesSeparator.push({
+          sentence_number:
+            table_of_sentence.children[0].children[0].children[0].children[0].children[0].children[0].textContent.trim(),
+          proceedings_number:
+            table_of_sentence.children[0].children[0].children[1].children[0].children[0].textContent.trim(),
+
+          proceedings_type: table_of_sentence.children[1].children[0].children[0].textContent.trim(),
+
+          parts: table_of_sentence.children[1].children[1].children[0].textContent.trim(),
+
+          choice: table_of_sentence.children[1].children[2].children[0].textContent.trim(),
+
+          speaker: table_of_sentence.children[1].children[3].children[0].textContent.trim(),
+
+          url_content: table_of_sentence.children[1].children[4].children[0].children[1].href
+
+        });
+      }
+    
+      sentences.push(sentencesSeparator)
+    
+   
+  
+    }
+    console.log(sentences)
+  }, altosDecisiones)
    
 
-    // PASO 5: Extraer el mes y el primer día
-    const data = await page.evaluate(() => {
-      const monthElement = document.querySelector(
-        ":nth-child(1) > .alto.decisiones :nth-child(2) .nombre-mes a"
-      );
-      const firstDayElement = document.querySelector(
-        ":nth-child(1) > .alto.decisiones :nth-child(2) .numero-dia"
-      );
 
-      const month = monthElement ? monthElement.textContent.trim() : null;
-      const firstDay = firstDayElement
-        ? firstDayElement.textContent.trim()
-        : null;
 
-      return { month, firstDay };
-    });
-
-    console.log("Mes:", data.month);
-    console.log("Primer día:", data.firstDay);
-
-    // PASO 6: Hacer clic en el primer enlace del día
-    if (data.firstDay) {
-      console.log("si existe");
-      await page.evaluate(async () => {
-        const firstDayElement = document.querySelector(
-          ":nth-child(1) > .alto.decisiones :nth-child(2) .numero-dia"
-        );
-        await firstDayElement.click();
-        console.log("le di click al <a>");
-      });
-
-      // Esperar a que el contenido cargue
-      await page.waitForFunction(
-        () => {
-          const blog_area = document.querySelector("#blog_area");
-          return (
-            blog_area &&
-            blog_area.children[1] &&
-            blog_area.children[1].children.length > 0
-          );
-        },
-        { timeout: 60000 }
-      );
-
-      // Extraer el contenido de las sentencias
-      const content = await page.evaluate(() => {
-        const sentences = [];
-        const blog_area = document.querySelector("#blog_area");
-        const sentences_cont = blog_area.children[1];
-
-        for (let sentence of sentences_cont.children) {
-          const table_of_sentence = sentence.children[0].children[0];
-          sentences.push({
-            sentence_number:
-              table_of_sentence.children[0].children[0].children[0].children[0].children[0].children[0].textContent.trim(),
-            proceedings_number:
-              table_of_sentence.children[0].children[0].children[1].children[0].children[0].textContent.trim(),
-
-            proceedings_type: table_of_sentence.children[1].children[0].children[0].textContent.trim(),
-
-            parts: table_of_sentence.children[1].children[1].children[0].textContent.trim(),
-
-            choice: table_of_sentence.children[1].children[2].children[0].textContent.trim(),
-
-            speaker: table_of_sentence.children[1].children[3].children[0].textContent.trim(),
-
-            url_content: table_of_sentence.children[1].children[4].children[0].children[1].href
-
-          });
-        }
-
-        return sentences;
-      });
-
-    
-
-      var sentences_from_civil = {
-        ...data,
-        sentences: content
-    }
-
-   console.log("objeto final de sentencias",sentences_from_civil)
-
-    }
   } catch (error) {
     console.error("Error en la ejecución:", error);
   } finally {
