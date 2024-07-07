@@ -70,59 +70,77 @@ console.log("Inició");
     );
 
    
-   //recorre todo el mes
+   //recorre Toda la sala
    const childElements = await page.evaluate(async(container) => {
+
+    console.log("el container",container)
+
+    var salaSentences = []
+  
     const children = container.children;
-    const listOfDaysPerMonth = children[1].children[0].children[0].children[1]
-  
-    var sentences = []
+    console.log("container children",children)
 
-    for(let i = 0; i < listOfDaysPerMonth.children.length; i++){
-      console.log(listOfDaysPerMonth.children[i])
+    //recorre todo el mes
+    for(let i = 1; i < children.length;i++){
 
-      var sentencesSeparator = []
-     
+      const listOfDaysPerMonth = children[i].children[0].children[0].children[1]
+
+      let mesExtracted = children[i].children[0].children[0].children[0].textContent
     
-      let a = listOfDaysPerMonth.children[i]
-
-      let day = a.textContent
-
-      a.click()
-
-      await new Promise((resolve) => setTimeout(resolve, 3000)); // Espera para permitir que el contenido se cargue
-
-      const content = document.querySelector("#blog_area");
-      const sentences_cont = blog_area.children[1];
-
-      console.log("SENTNECE CONT",sentences_cont)
-
-      for (let sentence of sentences_cont.children) {
-        const table_of_sentence = sentence.children[0].children[0];
-        sentencesSeparator.push({
-          sentence_number:
-            table_of_sentence.children[0].children[0].children[0].children[0].children[0].children[0].textContent.trim(),
-          proceedings_number:
-            table_of_sentence.children[0].children[0].children[1].children[0].children[0].textContent.trim(),
-
-          proceedings_type: table_of_sentence.children[1].children[0].children[0].textContent.trim(),
-
-          parts: table_of_sentence.children[1].children[1].children[0].textContent.trim(),
-
-          choice: table_of_sentence.children[1].children[2].children[0].textContent.trim(),
-
-          speaker: table_of_sentence.children[1].children[3].children[0].textContent.trim(),
-
-          url_content: table_of_sentence.children[1].children[4].children[0].children[1].href
-
-        });
+      var sentences = [mesExtracted,[]]
+  
+      for(let i = 0; i < listOfDaysPerMonth.children.length; i++){
+        console.log(listOfDaysPerMonth.children[i])
+  
+        let a = listOfDaysPerMonth.children[i]
+        let day = a.textContent
+  
+        var sentencesSeparator = [day,[]]
+       
+        a.click()
+  
+        await new Promise((resolve) => setTimeout(resolve, 3000)); // Espera para permitir que el contenido se cargue
+  
+        const content = document.querySelector("#blog_area");
+        const sentences_cont = blog_area.children[1];
+  
+        console.log("SENTNECE CONT",sentences_cont)
+  
+        //Saca todas las sentencias de una fecha
+        for (let sentence of sentences_cont.children) {
+          const table_of_sentence = sentence.children[0].children[0];
+          sentencesSeparator[1].push({
+            sentence_number:
+              table_of_sentence.children[0].children[0].children[0].children[0].children[0].children[0].textContent.trim(),
+            proceedings_number:
+              table_of_sentence.children[0].children[0].children[1].children[0].children[0].textContent.trim(),
+  
+            proceedings_type: table_of_sentence.children[1].children[0].children[0].textContent.trim(),
+  
+            parts: table_of_sentence.children[1].children[1].children[0].textContent.trim(),
+  
+            choice: table_of_sentence.children[1].children[2].children[0].textContent.trim(),
+  
+            speaker: table_of_sentence.children[1].children[3].children[0].textContent.trim(),
+  
+            url_content: table_of_sentence.children[1].children[4].children[0].children[1].href
+  
+          });
+        }
+      
+        sentences[1].push(sentencesSeparator)
+      
+         console.log("SENTNECIA DE MES COMPLETO",sentences)
+    
       }
-    
-      sentences.push(sentencesSeparator)
-    
-   
-  
+
+
+      salaSentences.push(sentences)
+
     }
-    console.log(sentences)
+
+  
+    console.log("SENTENCIA DE SALA",salaSentences)
   }, altosDecisiones)
    
 
